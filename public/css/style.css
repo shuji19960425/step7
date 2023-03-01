@@ -1,0 +1,62 @@
+.title {
+    font-size: x-large;
+}
+
+.message {
+    background-color: rgb(255, 177, 160);
+}
+
+.button {
+    background-color: green;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.main {
+    margin: 10px 20px auto 20px;
+}
+
+table, th, td {
+    border: solid;
+    padding: 5px;
+    text-align: center;
+}
+
+.column {
+    margin-top: 15px;
+    font-size: larger;
+}
+
+.show {
+    border: 1px solid;
+    border-radius: 10px;
+    background-color: bisque;
+    padding: 0 10px 10px 10px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+}
+
+.show p {
+    padding-top: 10px;
+    font-size: large;
+}
+
+.show img {
+    width: 400px;
+    height: auto;
+}
+
+.show__btn {
+    margin-top: 10px;
+}
+
+.main__table--img {
+    width: 200px;
+    height: auto;
+}
