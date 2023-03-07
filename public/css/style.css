@@ -2,8 +2,12 @@
     font-size: x-large;
 }
 
-.message {
+.delete {
     background-color: rgb(255, 177, 160);
+}
+
+.message {
+    background-color: rgb(144, 247, 144);
 }
 
 .button {

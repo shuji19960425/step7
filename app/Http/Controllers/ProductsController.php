@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Products;
 use App\Models\Companies;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductsController extends Controller
 {
@@ -16,63 +17,25 @@ class ProductsController extends Controller
     public function index(Request $request)
     {
 
-        $companies = Companies::all();
+        $model = new companies();
+        $companies = $model->companies();
 
         $search = $request->input('search');
         if (is_numeric($request->makerSearch)) {
             $makerSearch = $request->input('makerSearch');
         }
 
+        $productsModel = new Products();
+
         if (!empty($search)) {
-            $products = Products::select([
-                'p.id',
-                'p.company_id',
-                'p.product_name',
-                'p.price',
-                'p.stock',
-                'p.comment',
-                'p.img_path',
-                'c.company_name',
-            ])
-            ->from('products as p')
-            ->join('companies as c',function($join) {
-                $join->on('p.company_id', '=', 'c.id');
-            })
-            ->where('p.product_name', 'like', '%'.$search.'%')
-            ->get();
+            $products = $productsModel->productsSearch($search);
             
         }elseif (!empty($makerSearch)) {
-            $products = Products::select([
-                'p.id',
-                'p.company_id',
-                'p.product_name',
-                'p.price',
-                'p.stock',
-                'p.comment',
-                'p.img_path',
-                'c.company_name',
-            ])
-            ->from('products as p')
-            ->join('companies as c',function($join) {
-                $join->on('p.company_id', '=', 'c.id');
-            })
-            ->where('p.company_id', $makerSearch)
-            ->get();
+            $products = $productsModel->makerSearch($makerSearch);
+
         }else {
-            $products = Products::select([
-                'p.id',
-                'p.company_id',
-                'p.product_name',
-                'p.price',
-                'p.stock',
-                'p.comment',
-                'p.img_path',
-                'c.company_name',
-            ])
-            ->from('products as p')
-            ->join('companies as c',function($join) {
-                $join->on('p.company_id', '=', 'c.id');
-            })->get();    
+            $products = $productsModel->products();    
+
         }
         return view('products.index', compact('products', 'companies', 'search'));
     
@@ -85,7 +48,8 @@ class ProductsController extends Controller
      */
     public function create()
     {
-        $companies = Companies::all();
+        $model = new companies();
+        $companies = $model->companies();
         return view('products.create', compact('companies'));
     }
 
@@ -104,21 +68,30 @@ class ProductsController extends Controller
             'stock' => 'required | integer',
             'image' => 'image'
         ]);
+        try {
+            DB::beginTransaction();
 
-        $product = new Products();
-        $product->company_id = $request->maker;
-        $product->product_name = $request->product_name;
-        $product->price = $request->price;
-        $product->stock = $request->stock;
-        $product->comment = $request->comment;
-        if (request('image')) {
-            $original = request()->file('image')->getClientOriginalName();
-            $name = date('Ymd_His').'_'.$original;
-            request()->file('image')->move('storage/images', $name);
-            $product->img_path = $name;
+            $product = new Products();
+            $product->company_id = $request->maker;
+            $product->product_name = $request->product_name;
+            $product->price = $request->price;
+            $product->stock = $request->stock;
+            $product->comment = $request->comment;
+            if (request('image')) {
+                $original = request()->file('image')->getClientOriginalName();
+                $name = date('Ymd_His').'_'.$original;
+                request()->file('image')->move('storage/images', $name);
+                $product->img_path = $name;
+            }
+            $product->save();
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
         }
-        $product->save();
-        return redirect()->route('product.create')->with('message', '登録しました');
+    
+        
+        return redirect()->route('product.create')->with('message', config('session.create'));
     }
 
     /**
@@ -129,7 +102,8 @@ class ProductsController extends Controller
      */
     public function show(Products $product)
     {
-        $companies = companies::all();
+        $model = new companies();
+        $companies = $model->companies();
         return view('products.show', compact('product', 'companies'));
     }
 
@@ -141,7 +115,8 @@ class ProductsController extends Controller
      */
     public function edit(Products $product)
     {
-        $companies = Companies::all();
+        $model = new companies();
+        $companies = $model->companies();
         return view('products.edit', compact('product', 'companies'));
     }
 
@@ -161,19 +136,30 @@ class ProductsController extends Controller
             'stock' => 'required | integer',
         ]);
 
-        $product->company_id = $request->maker;
-        $product->product_name = $request->product_name;
-        $product->price = $request->price;
-        $product->stock = $request->stock;
-        $product->comment = $request->comment;
-        if (request('image')) {
-            $original = request()->file('image')->getClientOriginalName();
-            $name = date('Ymd_His').'_'.$original;
-            $file = request()->file('image')->move('storage/images', $name);
-            $product->img_path = $name;
+        try {
+            DB::beginTransaction();
+
+            $product->company_id = $request->maker;
+            $product->product_name = $request->product_name;
+            $product->price = $request->price;
+            $product->stock = $request->stock;
+            $product->comment = $request->comment;
+            if (request('image')) {
+                $original = request()->file('image')->getClientOriginalName();
+                $name = date('Ymd_His').'_'.$original;
+                $file = request()->file('image')->move('storage/images', $name);
+                $product->img_path = $name;
+            }
+            $product->save();
+
+            DB::commit();
+        } catch (\Exception $e) {
+
+            DB::rollback();
+            Log::error($e);
         }
-        $product->save();
-        return redirect()->route('product.edit', $product)->with('message', '更新しました');
+
+        return redirect()->route('product.edit', $product)->with('message', config('session.update'));
     }
 
     /**
@@ -184,8 +170,18 @@ class ProductsController extends Controller
      */
     public function destroy(Products $product)
     {
-        $product->delete();
-        return redirect()->route('product.index')->with('message', '商品を削除しました');
+        try {
+            DB::beginTransaction();
+
+            $product->delete();
+
+            DB::commit();
+        } catch(\Expention $e) {
+            DB::rollback();
+            Log::error($e);
+        }
+        
+        return redirect()->route('product.index')->with('message', config('session.delete'));
     }
 
 }

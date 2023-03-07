@@ -4,7 +4,7 @@
 
         <h2 class="title">商品の一覧</h2>
             @if (session('message'))
-                <div class="message">
+                <div class="delete">
                     {{session('message')}} 
                 </div>       
             @endif
@@ -57,7 +57,7 @@
                     <td>{{ $product->product_name }}</td>
                     <td>{{ $product->price }}円</td>
                     <td>{{ $product->stock }}個</td>
-                    <td>{{ $product->company_name }}</td>
+                    <td>{{ $product->company->company_name }}</td>
                     <td>
                         <x-secondary-button class="bg-green-400">
                             <a href="{{ route('product.show', $product) }}">詳細表示</a>

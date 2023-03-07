@@ -12,4 +12,14 @@ class companies extends Model
     public function products() {
         return $this->hasMany(Products::class);
     }
+
+    public function companies() {
+        $companies = Companies::all();
+        return $companies;
+    }
+
+    public function makerSearch($makerSearch) {
+        $makerSearch = Companies::where('company_name', 'like', '%'.$makerSearch.'%')->get();
+        return $makerSearch;
+    }
 }

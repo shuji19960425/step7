@@ -198,4 +198,7 @@ return [
 
     'same_site' => 'lax',
 
+    'create' => '登録しました',
+    'update' => '更新しました',
+    'delete' => '削除しました',
 ];

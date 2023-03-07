@@ -8,10 +8,12 @@
         </div>
 
         <x-input-error :messages="$errors->all()" />
-
         @if (session('message'))
-            {{session('message')}}        
+            <div class="message">
+                {{session('message')}} 
+            </div>      
         @endif
+        
         
     </x-slot>
     
